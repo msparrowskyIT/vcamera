@@ -1,5 +1,6 @@
 from point import Point3D
 from prim import Prim
+from road import Road
 from math import pi
 import tkinter as tk
 
@@ -9,20 +10,19 @@ def draw():
     def center(point2D):
         return (WIDTH/2 + point2D.x, HEIGHT/2 - point2D.y)
 
-    for prim in prims:
-        for poligon2D in prim.get_poligons2D(DISTANCE):
-            canvas.create_line(*center(poligon2D[0]), *center(poligon2D[1]), *center(poligon2D[2]), *center(poligon2D[3]), *center(poligon2D[0]), fill = prim.color)
+    for obj in prims + roads:
+        for poligon2D in obj.get_poligons2D(DISTANCE):
+            canvas.create_line(*center(poligon2D[0]), *center(poligon2D[1]), *center(poligon2D[2]), *center(poligon2D[3]), *center(poligon2D[0]), fill = obj.color)
 
 def move(axis, step):
-    list(map(lambda prim: prim.move(axis, step), prims))
-
+    list(map(lambda obj: obj.move(axis, step), prims + roads))
 
 def rotate(axis, angle):
-    list(map(lambda prim: prim.rotate(axis, angle), prims))
+    list(map(lambda obj: obj.rotate(axis, angle), prims + roads))
 
 def zoom(step):
     global DISTANCE
-    DISTANCE += step
+    DISTANCE += step if DISTANCE + step >= 0 else 0
 
 
 WIDTH = HEIGHT = 502
@@ -32,9 +32,13 @@ MOVE_STEP = 2
 ROTATION_STEP = pi/90
 
 prims = [
-    Prim(Point3D(-45, -20, 105), 90, 40, 40, 'purple'),
-    Prim(Point3D(25, -20, 50), 25, 25, 25),
-    Prim(Point3D(-50, -20, 50), 25, 25, 25, 'green')
+    Prim(Point3D(-40, -20, 100), 80, 50, 50, 'purple'),
+    Prim(Point3D(-50, -20, 50), 25, 25, 25, 'green'),
+    Prim(Point3D(25, -20, 50), 25, 25, 25)
+]
+
+roads = [
+    Road(Point3D(-12.5, -20, 50), 25, 0, 40)
 ]
 
 def key(event):
@@ -70,4 +74,3 @@ draw()
 canvas.pack()
 
 tk.mainloop()
-

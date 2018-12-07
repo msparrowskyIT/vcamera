@@ -1,6 +1,7 @@
 from point import Point3D, PointBehindObserver
 from edge import *
 from side import *
+from copy import deepcopy
 
 class Prim:
     "Representation of prime in 3d coordinate system"
@@ -29,7 +30,7 @@ class Prim:
     def __create_edges(self, points3D, distance, color):
         """Create prime's edges."""
         def create_edge(i, j):
-            return Edge((points3D[i], points3D[j]), distance, color)
+            return Edge(deepcopy((points3D[i], points3D[j])), distance, color)
         
         # front: bottom, right, top, left edges    
         edges = [create_edge(0, 1)]
@@ -52,7 +53,7 @@ class Prim:
     def __create_sides(self, edges, color):
         """Create prime's sides."""
         def create_side(i, j, k, l):
-            return Side((edges[i], edges[j], edges[k], edges[l]), color)
+            return Side(deepcopy((edges[i], edges[j], edges[k], edges[l])), color)
 
         # front, back sides 
         sides = [create_side(0, 1, 2, 3)]

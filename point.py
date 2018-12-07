@@ -4,8 +4,6 @@ import numpy as np
 class PointBehindObserver(Exception):
     pass
 
-
-
 class Point2D:
     "Representation of single point in 2D coordinate system"
     def __init__(self, x=0, y=0):
@@ -22,11 +20,11 @@ class Point3D(Point2D):
         super().__init__(x, y)
         self.z = z
 
-    # def __repr__(self):
-    #     return f"Point3D: [{self.x}, {self.y}, {self.z}]"
+    def __repr__(self):
+        return f"Point3D: [{self.x}, {self.y}, {self.z}]"
 
     def move(self, axis, step):
-        "Move point on step in x, y, z direction"
+        "Move point by step in x, y, z direction"
         m = {
                 'x': lambda: (self.x + step, self.y, self.z),
                 'y': lambda: (self.x, self.y + step, self.z),
@@ -36,7 +34,7 @@ class Point3D(Point2D):
         (self.x, self.y, self.z) = m()
 
     def rotate(self, axis, angle):
-        "Rotate point on angle in x, y, z direction"
+        "Rotate point by angle in x, y, z direction"
         r_matrix = np.array(Rotation.get_matrix(axis, angle))
         p_matrix = np.array([[self.x], [self.y], [self.z]])
         r_point = np.matmul(r_matrix, p_matrix)

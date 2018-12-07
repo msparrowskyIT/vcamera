@@ -3,16 +3,18 @@ from point import *
 class Edge:
     "Representation of single edge in 3D/2D coordinate system."
 
-    def __init__(self, points3D, distance):
+    def __init__(self, points3D, distance, color = 'red'):
         self.points3D = points3D
         self.coefs3D = self.__coefs3D()
         self.points2D = self.__points2D(self.points3D, distance)
         self.coefs2D = self.__coefs2D()
+        self.color = color
 
     def __repr__(self):
-        return f"""Edge:
-        \t3D: {self.points3D}, x = {self.points3D[0].x} + {self.coefs3D['a']}*t, y = {self.points3D[0].y} + {self.coefs3D['b']}*t, z = {self.points3D[0].z} + {self.coefs3D['c']}*t.
-        \t2D: {self.points2D}, y = {self.coefs2D['a']}*x + {self.coefs2D['b']}"""
+        str = f"Edge 3D: x = {self.points3D[0].x} + {self.coefs3D['a']}*t, y = {self.points3D[0].y} + {self.coefs3D['b']}*t, z = {self.points3D[0].z} + {self.coefs3D['c']}*t."
+        str += f"Edge 2D: y = {self.coefs2D['a']}*x + {self.coefs2D['b']}" if self.points2D else f"Edge 2D: {None}."
+
+        return str
 
     def __points2D(self, points3D, distance):
         """Calculate edge's representation in 2D coordinate system.
@@ -45,7 +47,7 @@ class Edge:
             
             return {'a': a, 'b': b}
 
-    def __update(self, distance=1):
+    def __update(self, distance):
         "Update edge's coeffitients and 2D representation in context of changing points3D."
         self.coefs3D = self.__coefs3D()
         self.points2D = self.__points2D(self.points3D, distance)
@@ -56,21 +58,21 @@ class Edge:
         def x_cross(x):
             if(self.points3D[0].x <= x <= self.points3D[1].x):
                 t = (x - self.points3D[0].x) / self.coefs3D['a']
-                return Point3D(x, self.ponits3D[0].y + self.coefs3D['b'] * t, self.ponits3D[0].z + self.coefs3D['c'] * t)
+                return Point3D(x, self.points3D[0].y + self.coefs3D['b'] * t, self.points3D[0].z + self.coefs3D['c'] * t)
 
             return None
 
         def y_cross(y):
             if(self.points3D[0].y <= y <= self.points3D[1].y):
                 t = (y - self.points3D[0].y) / self.coefs3D['b']
-                return Point3D(self.ponits3D[0].x + self.coefs3D['a'] * t, y, self.ponits3D[0].z + self.coefs3D['c'] * t)
+                return Point3D(self.points3D[0].x + self.coefs3D['a'] * t, y, self.points3D[0].z + self.coefs3D['c'] * t)
 
             return None
 
         def z_cross(z):
             if(self.points3D[0].z <= z <= self.points3D[1].z):
                 t = (z - self.points3D[0].z) / self.coefs3D['c']
-                return Point3D(self.ponits3D[0].x + self.coefs3D['a'] * t, self.ponits3D[0].y + self.coefs3D['b'] * t, z)
+                return Point3D(self.points3D[0].x + self.coefs3D['a'] * t, self.points3D[0].y + self.coefs3D['b'] * t, z)
 
             return None
 
@@ -117,5 +119,6 @@ class Edge:
         self.__update(distance)
 
     def zoom(self, distance):
-        "Zoom edge in 3D coordinate system and update coefficients and 2D representation."
-        self.__update(distance)
+        "Zoom edge in 2D coordinate system and update coefficients."
+        self.points2D = self.__points2D(self.points3D, distance)
+        self.coefs2D = self.__coefs2D()

@@ -1,6 +1,6 @@
 from point import Point3D, PointBehindObserver
 from edge import *
-from side import *
+from polygon import *
 from copy import deepcopy
 
 class Prim:
@@ -9,7 +9,8 @@ class Prim:
     def __init__(self, point, width, height, deepth, distance, color = 'red'):
         points3D = self.__create_points3D(point, width, height, deepth)
         edges = self.__create_edges(points3D, distance, color)
-        self.sides = self.__create_sides(edges, color)
+        
+        self.polygons = self.__polygons_init(edges, color)
         self.color = color
 
     def __create_points3D(self, point3D, width, height, deepth):
@@ -50,31 +51,31 @@ class Prim:
 
         return edges
 
-    def __create_sides(self, edges, color):
+    def __polygons_init(self, edges, color):
         """Create prime's sides."""
-        def create_side(i, j, k, l):
-            return Side(deepcopy((edges[i], edges[j], edges[k], edges[l])), color)
+        def create_polygon(i, j, k, l):
+            return Polygon(deepcopy((edges[i], edges[j], edges[k], edges[l])), color)
 
         # front, back sides 
-        sides = [create_side(0, 1, 2, 3)]
-        sides.append(create_side(4, 5, 6, 7))
-        # top, bottom sides 
-        sides.append(create_side(2, 10, 6, 11))
-        sides.append(create_side(0, 9, 4, 8))
-        # left, right sides
-        sides.append(create_side(8, 7, 11, 3))
-        sides.append(create_side(9, 5, 10, 1))
+        polygons = [create_polygon(0, 1, 2, 3)]
+        polygons.append(create_polygon(4, 5, 6, 7))
+        # top, bottom sides
+        polygons.append(create_polygon(2, 10, 6, 11))
+        polygons.append(create_polygon(0, 9, 4, 8))
+        # left, righ sides
+        polygons.append(create_polygon(8, 7, 11, 3))
+        polygons.append(create_polygon(9, 5, 10, 1))
 
-        return sides
+        return polygons
 
     def move(self, axis, step, distance):
         "Move prim in 3D coordinate system."
-        list(map(lambda s: s.move(axis, step, distance), self.sides))
+        list(map(lambda p: p.move(axis, step, distance), self.polygons))
         
     def rotate(self, axis, angle, distance):
         "Rotate prim in 3D coordinate system."
-        list(map(lambda s: s.rotate(axis, angle, distance), self.sides))
+        list(map(lambda p: p.rotate(axis, angle, distance), self.polygons))
 
     def zoom(self, distance):
         "Zoom prim in 2D coordinate system."
-        list(map(lambda s: s.zoom(distance), self.sides))
+        list(map(lambda p: p.zoom(distance), self.polygons))

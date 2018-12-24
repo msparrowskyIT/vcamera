@@ -8,17 +8,14 @@ class Polygon:
         self.edges = edges
         self.color = color
 
-    def __repr__(self):
-        return "Polygon:" + "\n\t".join((e.__repr__() for e in self.edges))
-
-    def move(self, axis, step, distance):
+    def move(self, axis, step, throwing_area):
         "Move Polygon in 3D coordinate system."
-        list(map(lambda e: e.move(axis, step, distance), self.edges))
+        list(map(lambda e: e.move(axis, step, throwing_area), self.edges))
         
-    def rotate(self, axis, angle, distance):
+    def rotate(self, axis, angle, throwing_area):
         "Rotate Polygon in 3D coordinate system."
-        list(map(lambda e: e.rotate(axis, angle, distance), self.edges))
+        list(map(lambda e: e.rotate(axis, angle, throwing_area), self.edges))
 
-    def zoom(self, distance):
+    def zoom(self, throwing_area):
         "Zoom Polygon in 2D coordinate system."
-        list(map(lambda e: e.zoom(distance), self.edges))
+        list(map(lambda e: e.zoom(throwing_area), self.edges))

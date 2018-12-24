@@ -1,4 +1,4 @@
-from point import Point3D, PointBehindObserver
+from point import *
 from edge import *
 from polygon import *
 from copy import deepcopy
@@ -6,10 +6,9 @@ from copy import deepcopy
 class Prim:
     "Representation of prime in 3d coordinate system"
     
-    def __init__(self, point, width, height, deepth, distance, color = 'red'):
+    def __init__(self, point, width, height, deepth, throwing_area, color = 'red'):
         points3D = self.__create_points3D(point, width, height, deepth)
-        edges = self.__create_edges(points3D, distance, color)
-        
+        edges = self.__create_edges(points3D, throwing_area, color)
         self.polygons = self.__polygons_init(edges, color)
         self.color = color
 
@@ -28,10 +27,10 @@ class Prim:
 
         return points3D
 
-    def __create_edges(self, points3D, distance, color):
+    def __create_edges(self, points3D, throwing_area, color):
         """Create prime's edges."""
         def create_edge(i, j):
-            return Edge(deepcopy((points3D[i], points3D[j])), distance, color)
+            return Edge(deepcopy((points3D[i], points3D[j])), throwing_area, color)
         
         # front: bottom, right, top, left edges    
         edges = [create_edge(0, 1)]
@@ -68,14 +67,14 @@ class Prim:
 
         return polygons
 
-    def move(self, axis, step, distance):
+    def move(self, axis, step, throwing_area):
         "Move prim in 3D coordinate system."
-        list(map(lambda p: p.move(axis, step, distance), self.polygons))
+        list(map(lambda p: p.move(axis, step, throwing_area), self.polygons))
         
-    def rotate(self, axis, angle, distance):
+    def rotate(self, axis, angle, throwing_area):
         "Rotate prim in 3D coordinate system."
-        list(map(lambda p: p.rotate(axis, angle, distance), self.polygons))
+        list(map(lambda p: p.rotate(axis, angle, throwing_area), self.polygons))
 
-    def zoom(self, distance):
+    def zoom(self, throwing_area):
         "Zoom prim in 2D coordinate system."
-        list(map(lambda p: p.zoom(distance), self.polygons))
+        list(map(lambda p: p.zoom(throwing_area), self.polygons))

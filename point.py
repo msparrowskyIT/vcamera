@@ -16,7 +16,7 @@ class Point2D:
         return abs(self.x - other.x) <= abs_error and abs(self.y - other.y) <= abs_error
 
     def __eq__(self, other):
-        return  self.__is_close(other, 1e-5) if isinstance(other, Point2D) else False
+        return  self.__is_close(other, 1e-1) if isinstance(other, Point2D) else False
 
 class Point3D(Point2D):
     "Representation of single point in 3D coordinate system."
@@ -30,7 +30,7 @@ class Point3D(Point2D):
         return self._Point2D__is_close(other, abs_error) and abs(self.z - other.z) <= abs_error
 
     def __eq__(self, other):
-        return self.__is_close(other, 1e-5) if isinstance(other, Point3D) else False
+        return self.__is_close(other, 1e-1) if isinstance(other, Point3D) else False
 
     def move(self, axis, step):
         "Move point by step in x, y, z axis."

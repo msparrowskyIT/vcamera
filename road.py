@@ -1,32 +1,48 @@
-from point import Point3D, PointBehindObserver
+from point import *
+from edge import *
+from polygon import *
+from copy import deepcopy
 
 class Road:
-    def __init__(self, point, width, height, deepth, color = 'gray'):
-        self.points = [point]
-        self.points.append(Point3D(point.x + width, point.y, point.z))
-        self.points.append(Point3D(point.x + width, point.y + height, point.z + deepth))
-        self.points.append(Point3D(point.x, point.y + height, point.z + deepth))
-        self.color = color
+    def __init__(self, point, width, height, deepth, throwing_area, color = 'red'):
+        points3D = self.__create_points3D(point, width, height, deepth)
+        edges = self.__create_edges(points3D, throwing_area, color)
+        self.polygon = self.__polygon_init(edges, color)
+        self.color = color       
 
-    def __repr__(self):
-        return f"Road: {self.points}"
+    def __create_points3D(self, point3D, width, height, deepth):
+        """Create road's points3D."""
+        points3D = [point3D]
+        points3D.append(Point3D(point3D.x + width, point3D.y, point3D.z))
+        points3D.append(Point3D(point3D.x + width, point3D.y + height, point3D.z + deepth))
+        points3D.append(Point3D(point3D.x, point3D.y + height, point3D.z + deepth))
+        
+        return points3D
 
-    def change_color(self, color):
-        self.color = color
+    def __create_edges(self, points3D, throwing_area, color):
+        """Create road's edges."""
+        def create_edge(i, j):
+            return Edge(deepcopy((points3D[i], points3D[j])), throwing_area, color)
 
-    def move(self, axis, step):
-        list(map(lambda point: point.move(axis, step), self.points))
+        edges = [create_edge(0, 1)]
+        edges.append(create_edge(1, 2))
+        edges.append(create_edge(2, 3))
+        edges.append(create_edge(3, 0)) 
 
-    def rotate(self, axis, angle):
-        list(map(lambda point: point.rotate(axis, angle), self.points))
+        return edges
 
-    def get_poligons2D(self, distance):
-        poligons2D = []
-        try:
-            points2D = tuple(map(lambda point3D: point3D.to2D(distance), self.points))
-            poligons2D.append(points2D)
-        except PointBehindObserver:
-            pass
-            #print(f"Poligon: {poligon3D} contains point behind observer.")
+    def __polygon_init(self, edges, color):
+        """Create road's side."""
+        return Polygon(deepcopy((edges[0], edges[1], edges[2], edges[3])), color)
 
-        return poligons2D
+    def move(self, axis, step, throwing_area):
+        "Move road in 3D coordinate system."
+        self.polygon.move(axis, step, throwing_area)
+        
+    def rotate(self, axis, angle, throwing_area):
+        "Rotate road in 3D coordinate system."
+        self.polygon.rotate(axis, angle, throwing_area)
+
+    def zoom(self, throwing_area):
+        "Zoom road in 2D coordinate system."
+        self.polygon.zoom(throwing_area)

@@ -53,18 +53,18 @@ class Edge2D:
 
         return func(p) if p else None
 
-    def __is_correct_range(self, axis, value):
+    def __is_correct_range(self, axis, value, abs_error):
         "Check is value in correct range in certain axis."
         c = {
-            'x': lambda: self.get_axis_param('x', min) <= value <= self.get_axis_param('x', max),
-            'y': lambda: self.get_axis_param('y', min) <= value <= self.get_axis_param('y', max),
+            'x': lambda: self.get_axis_param('x', min) - abs_error <= value <= self.get_axis_param('x', max) + abs_error,
+            'y': lambda: self.get_axis_param('y', min) - abs_error <= value <= self.get_axis_param('y', max) + abs_error,
         }.get(axis)
 
         return c() if c else False
 
     def contain(self, point2D):
         "Check does point2D satisfy the edge's equation."
-        if(not(self.__is_correct_range('x', point2D.x) and self.__is_correct_range('y', point2D.y))):
+        if(not(self.__is_correct_range('x', point2D.x, 1e-5) and self.__is_correct_range('y', point2D.y, 1e-5))):
             return False
         elif(self.type == EdgeType.X_CONST or self.type == EdgeType.Y_CONST):
             return True
@@ -75,7 +75,7 @@ class Edge2D:
     def cross_with_axis(self, axis, value):
         "Calculate Point2D if parameter value is in edge's range."
         def x_cross():
-            if(self.__is_correct_range('x', value)):
+            if(self.__is_correct_range('x', value, 1e-5)):
                 if(self.type != EdgeType.X_CONST):
                     t = (value - self.s_point.x) / self.coefs['a']
                     return self.get_point(t)
@@ -85,7 +85,7 @@ class Edge2D:
                 return []
         
         def y_cross():
-            if (self.__is_correct_range('y', value)):
+            if (self.__is_correct_range('y', value, 1e-5)):
                 if(self.type != EdgeType.Y_CONST):
                     t = (value - self.s_point.y) / self.coefs['b']
                     return self.get_point(t)
@@ -110,7 +110,7 @@ class Edge2D:
             return tuple(cross_points)
 
         denominator = self.coefs['a'] * edge2D.coefs['b'] - self.coefs['b'] * edge2D.coefs['a']
-        if(denominator != 0):
+        if(abs(denominator) >= 1e-5):
             numerator = edge2D.coefs['a'] * (self.s_point.y - edge2D.s_point.y) + edge2D.coefs['b'] * (edge2D.s_point.x - self.s_point.x)
             t = numerator / denominator
             cross_point = self.get_point(t)
@@ -167,7 +167,20 @@ class Edge3D:
 
     def get_point(self, t):
         "Calculate Point3D from length of directional vector."
-        return Point3D(self.s_point.x + self.coefs['a'] * t, self.s_point.y + self.coefs['b'] * t, self.s_point.z + self.coefs['c'] * t)
+        try:
+            return Point3D(self.s_point.x + self.coefs['a'] * t, self.s_point.y + self.coefs['b'] * t, self.s_point.z + self.coefs['c'] * t)
+        except:
+            print("WOw")
+
+    def __is_correct_range(self, axis, value, abs_error = 0):
+        "Check is value in correct range in certain axis."
+        c = {
+            'x': lambda: self.get_axis_param('x', min) - abs_error <= value <= self.get_axis_param('x', max) + abs_error,
+            'y': lambda: self.get_axis_param('y', min) - abs_error <= value <= self.get_axis_param('y', max) + abs_error,
+            'z': lambda: self.get_axis_param('z', min) - abs_error <= value <= self.get_axis_param('z', max) + abs_error
+        }.get(axis)
+
+        return c() if c else False
 
     def get_transformation_ratio(self, point2D, throwing_area):
         "Calculate transformation ratio for 3D point2D."
@@ -182,6 +195,54 @@ class Edge3D:
             return numerator_yz / denominator_yz
 
         return (-1, 1)
+
+    def contain(self, point3D):
+        "Check does point2D satisfy the edge's equation."
+        if(not(self.__is_correct_range('x', point3D.x, 1e-5) and self.__is_correct_range('y', point3D.y, 1e-5) and self.__is_correct_range('z', point3D.z, 1e-5))):
+            return False
+        elif(len(self.type) == 2):
+            return True
+        elif(EdgeType.X_CONST not in self.type):
+            t = (point3D.x - self.s_point.x) / self.coefs['a']
+        elif(EdgeType.Y_CONST not in self.type):
+            t = (point3D.y - self.s_point.y) / self.coefs['b']
+        elif(EdgeType.Z_CONST not in self.type):
+            t = (point3D.z - self.s_point.z) / self.coefs['c']
+        
+        return point3D == self.get_point(t)
+
+    def cross_with_edge(self, edge3D):
+        "Calculate Point3D if edges have common points."
+        def get_common_extreme_points():
+            cross_points = []
+            cross_points.extend([p for p in (self.s_point, self.e_point) if not p in cross_points and edge3D.contain(p)])
+            cross_points.extend([p for p in (edge3D.s_point, edge3D.e_point) if not p in cross_points and self.contain(p)])
+            return tuple(cross_points)
+
+        def get_t():
+            denominator_xy = self.coefs['b'] * edge3D.coefs['a'] - edge3D.coefs['b'] * self.coefs['a']
+            if(denominator_xy):
+                numerator_xy = edge3D.coefs['a'] * (edge3D.s_point.y - self.s_point.y) + edge3D.coefs['b'] * (self.s_point.x - edge3D.s_point.x)
+                return numerator_xy / denominator_xy
+
+            denominator_xz = self.coefs['c'] * edge3D.coefs['a'] - edge3D.coefs['c'] * self.coefs['a']
+            if(denominator_xz):
+                numerator_xz = edge3D.coefs['a'] * (edge3D.s_point.z - self.s_point.z) + edge3D.coefs['c'] * (self.s_point.x - edge3D.s_point.x)
+                return numerator_xz / denominator_xz    
+
+            denominator_yz = self.coefs['c'] * edge3D.coefs['b'] - edge3D.coefs['c'] * self.coefs['b']
+            if(denominator_yz):
+                numerator_yz = edge3D.coefs['b'] * (edge3D.s_point.z - self.s_point.z) + edge3D.coefs['c'] * (self.s_point.y - edge3D.s_point.y)
+                return numerator_yz / denominator_yz    
+
+            return None
+        
+        t = get_t()
+        if(t):
+            cross_point = self.get_point(t)
+            return cross_point if self.contain(cross_point) and edge3D.contain(cross_point) else ()
+        else:
+            return get_common_extreme_points()
 
     def move(self, axis, step, throwing_area):
         "Move edge in 3D coordinate system."

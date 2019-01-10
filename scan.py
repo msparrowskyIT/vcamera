@@ -62,39 +62,49 @@ class ScanLineAlgoritm():
     @classmethod
     def __get_y_const2D_subedges_dict(cls, edges_dict, throwing_area):
         
-        def subcross_with_edge2D_init(edges):
-            return [[e, e.edge2D.s_point, e.edge2D.e_point] for e in edges]
-            
-        def get_subcross_with_edge2D(edges):
-            subcross2D = subcross_with_edge2D_init(edges)
+        def subcross_with_edge3D_init(edges):
+            subcross3D = [[e, e.edge3D.s_point, e.edge3D.e_point] for e in edges]
             for i in range(0, len(edges)-1):
                 for j in range(i+1, len(edges)):
                     cross2D = edges[i].edge2D.cross_with_edge(edges[j].edge2D)
                     if(cross2D):
                         if(type(cross2D) == tuple):
-                            list(map(lambda c: subcross2D[i].append(c), [c for c in cross2D if c not in subcross2D[i]]))
-                            list(map(lambda c: subcross2D[j].append(c), [c for c in cross2D if c not in subcross2D[j]]))
+                            for p in cross2D:
+                                t1 = edges[i].edge3D.get_transformation_ratio(p, throwing_area)
+                                p1 = edges[i].edge3D.get_point(t1)
+                                if(p1 and p1 not in subcross3D[i]): subcross3D[i].append(p1)
+                                
+                                t2 = edges[j].edge3D.get_transformation_ratio(p, throwing_area)
+                                p2 = edges[j].edge3D.get_point(t2)
+                                if(p2 and p2 not in subcross3D[j]): subcross3D[j].append(p2)
                         else:
-                            if(cross2D not in subcross2D[i]): subcross2D[i].append(cross2D)
-                            if(cross2D not in subcross2D[j]): subcross2D[j].append(cross2D)
+                            t1 = edges[i].edge3D.get_transformation_ratio(cross2D, throwing_area)
+                            p1 = edges[i].edge3D.get_point(t1)
+                            if(p1 and p1 not in subcross3D[i]): subcross3D[i].append(p1)
+                            
+                            t2 = edges[j].edge3D.get_transformation_ratio(cross2D, throwing_area)
+                            p2 = edges[j].edge3D.get_point(t2)
+                            if(p2 and p2 not in subcross3D[j]): subcross3D[j].append(p2)
+            return subcross3D
 
-            for i, sc in enumerate(subcross2D[:]):
-                subcross2D[i][1:] = sorted(sc[1:], key = lambda p2D: p2D.x)
+            # return [[e, e.edge3D.s_point, e.edge3D.e_point] for e in edges]
+
+        def get_subcross_with_edge3D(edges):
+            subcross3D = subcross_with_edge3D_init(edges)
+            for i in range(0, len(edges)-1):
+                for j in range(i+1, len(edges)):
+                    cross3D = edges[i].edge3D.cross_with_edge(edges[j].edge3D)
+                    if(cross3D):
+                        if(type(cross3D) == tuple):
+                            list(map(lambda c: subcross3D[i].append(c), [c for c in cross3D if c not in subcross3D[i]]))
+                            list(map(lambda c: subcross3D[j].append(c), [c for c in cross3D if c not in subcross3D[j]]))
+                        else:
+                            if(cross3D not in subcross3D[i]): subcross3D[i].append(cross3D)
+                            if(cross3D not in subcross3D[j]): subcross3D[j].append(cross3D)
+
+            for i, sc in enumerate(subcross3D[:]):
+                subcross3D[i][1:] = sorted(sc[1:], key = lambda p3D: p3D.x)
             
-            return subcross2D
-
-        def get_subcross3D(subcross2D):
-            subcross3D = [[sc[0]] for sc in subcross2D]
-            for i, sc in enumerate(subcross2D):
-                for p2D in sc[1:]:
-                    t = sc[0].edge3D.get_transformation_ratio(p2D, throwing_area)
-                    if(type(t) == tuple):
-                        pass
-                        # subcross3D[i].append(sc[0].edge3D.get_point(-1))
-                        # subcross3D[i].append(sc[0].edge3D.get_point(1))
-                    else:    
-                        subcross3D[i].append(sc[0].edge3D.get_point(t))
-
             return subcross3D
 
         def get_y_const2D_subedges(subcross3D):
@@ -113,8 +123,9 @@ class ScanLineAlgoritm():
 
         subedges_dict = {}
         for y, edges in edges_dict.items():
-            subcross2D = get_subcross_with_edge2D(edges)
-            subcross3D = get_subcross3D(subcross2D)
+            if(y == 80):
+                print("Wow")
+            subcross3D = get_subcross_with_edge3D(edges)
             subedges = get_y_const2D_subedges(subcross3D)
             subedges_dict[y] = subedges
         
